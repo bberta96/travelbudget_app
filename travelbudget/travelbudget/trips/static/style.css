@@ -1,0 +1,26 @@
+body {
+	background-color: #FFFFFF;
+	font-family: verdana;
+}
+th, td, tr {
+	border: 1px solid;
+	padding: 15px;
+}
+th {
+	background-color: #0074D9;
+	text-align: center;
+	color: white;
+	border-color: black;
+}
+td {
+	text-align: left;
+}
+tr:nth-child(even) {background-color: #f2f2f2;}
+tr:nth-child(odd) {background-color: #ccccff;}
+table {
+	border-collapse: collapse;
+	border: 1px solid;
+}
+
+
+

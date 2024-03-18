@@ -1,0 +1,377 @@
+{% extends "trips/layout.html" %}
+
+{% block body %}
+<div id="content" name="content" class="container">
+	<h1>Search trip</h1>
+	<form action="{% url 'searchtrip' %}" method="POST" enctype="multipart/form-data">
+		{% csrf_token %}
+		<!--By choosing the parameters of the trip, the system gives an estimation of the total cost-->
+		<div class="form-group row">
+			<div class="form-group col-4"> 
+				<label class="control-label" for="origin">Departure country: </label>
+				<select name="origin" class="form-control" required>
+					{% for country_name in countries %}
+						<option>{{country_name.country}}</option>
+					{% endfor %}
+				</select>
+			</div>
+			<div class="form-group col-4">
+				<label class="control-label" for="destination">Arrival country: </label>
+				<select name="destination" class="form-control" required>
+					{% for country_name in countries %}
+						<option>{{country_name.country}}</option>
+					{% endfor %}
+				</select>
+			</div>
+		</div>
+		<br>
+		<div class="form-group row">
+			<div class="form-group col-4">
+				<label class="control-label" for="number_of_days">Number of days: </label>
+				<input type="number" class="form-control" name="number_of_days" required>
+			</div>
+			<div class="form-group col-4">
+				<label class="control-label" for="number_of_travellers">Number of travellers: </label>
+				<input type="number" class="form-control" name="number_of_travellers" required>
+			</div>
+		</div>
+		<br>
+		<div class="form-group col-2">
+			<input type="submit" class="form-control" value="Search">
+		</div>
+		{% if messages %}
+		<ul class="messages">
+			{% for message in messages %}
+				{% if message.tags %}  <script>alert("{{ message }}")</script> {% endif %}
+			{% endfor %}
+		</ul>
+		{% endif %}
+	</form>
+	{% if tripexists %}
+		<h1>Searching parameters:</h1>
+		<p>Departure country: {{parameter.origin}}</p>
+		<p>Arrival country: {{parameter.destination}}</p>
+		<p>Number of days: {{parameter.number_of_days}}</p>
+		<p>Number of travellers: {{parameter.number_of_travellers}}</p>
+		<!--Cost estimation from the available data-->
+		<script>
+			//Average airfare
+			var xtavg1 = 0;
+			try {
+				xtavg1 = getValue({{averagetotalflightcost.flight_cost}});
+			} catch(err) { }
+			//Average living cost
+			var xtavg2 = 0;
+			var xtavg3 = 0;
+			var xtavg4 = 0;
+			var xtavg5 = 0;
+			var xtavg6 = 0;
+			var xtavg7 = 0;
+			var xtavg8 = 0;
+			try {
+				xtavg2 = getValue({{averagetotalcost.hotel_cost}});
+				xtavg3 = getValue({{averagetotalcost.food_cost}});
+				xtavg4 = getValue({{averagetotalcost.fun_cost}});
+				xtavg5 = getValue({{averagetotalcost.travel_cost}});
+				xtavg6 = getValue({{averagetotalcost.visa_cost}});
+				xtavg7 = getValue({{averagetotalcost.vaccine_cost}});
+				xtavg8 = getValue({{averagetotalcost.other_cost}});
+			} catch(err) { }
+			//Max airfare
+			var xtmax1 = 0;
+			try {
+				xtmax1 = getValue({{maxtotalflightcost.flight_cost}});
+			} catch(err) { }
+			//Max living cost
+			var xtmax2 = 0;
+			var xtmax3 = 0;
+			var xtmax4 = 0;
+			var xtmax5 = 0;
+			var xtmax6 = 0;
+			var xtmax7 = 0;
+			var xtmax8 = 0;
+			try {
+				xtmax2 = getValue({{maxtotalcost.hotel_cost}});
+				xtmax3 = getValue({{maxtotalcost.food_cost}});
+				xtmax4 = getValue({{maxtotalcost.fun_cost}});
+				xtmax5 = getValue({{maxtotalcost.travel_cost}});
+				xtmax6 = getValue({{maxtotalcost.visa_cost}});
+				xtmax7 = getValue({{maxtotalcost.vaccine_cost}});
+				xtmax8 = getValue({{maxtotalcost.other_cost}});
+			} catch(err) { }
+			//Min airfare
+			var xtmin1 = 0;
+			try {
+				xtmin1 = getValue({{mintotalflightcost.flight_cost}});
+			} catch(err) { }
+			//Min living cost
+			var xtmin2 = 0;
+			var xtmin3 = 0;
+			var xtmin4 = 0;
+			var xtmin5 = 0;
+			var xtmin6 = 0;
+			var xtmin7 = 0;
+			var xtmin8 = 0;
+			try {
+				xtmin2 = getValue({{mintotalcost.hotel_cost}});
+				xtmin3 = getValue({{mintotalcost.food_cost}});
+				xtmin4 = getValue({{mintotalcost.fun_cost}});
+				xtmin5 = getValue({{mintotalcost.travel_cost}});
+				xtmin6 = getValue({{mintotalcost.visa_cost}});
+				xtmin7 = getValue({{mintotalcost.vaccine_cost}});
+				xtmin8 = getValue({{mintotalcost.other_cost}});
+			} catch(err) { }
+		</script>
+		<h1>Total cost of the trip:</h1>
+		<!--The estimated cost of the trip displayed in a table and on a pie chart-->
+		<div class="row">
+			<div class="col-6">
+				<table>
+					<tr>
+						<th>Travel expense</th>
+						<th>Average cost (USD)</th>
+						<th>Max cost (USD)</th>
+						<th>Min cost (USD)</th>
+					</tr>
+					<tr>
+						<td>International flights</td>
+						<td>{{averagetotalflightcost.flight_cost}}</td>
+						<td>{{maxtotalflightcost.flight_cost}}</td>
+						<td>{{mintotalflightcost.flight_cost}}</td>
+					</tr>
+					<tr>
+						<td>Accommodation</td>
+						<td>{{averagetotalcost.hotel_cost}}</td>
+						<td>{{maxtotalcost.hotel_cost}}</td>
+						<td>{{mintotalcost.hotel_cost}}</td>
+					</tr>
+					<tr>
+						<td>Food</td>
+						<td>{{averagetotalcost.food_cost}}</td>
+						<td>{{maxtotalcost.food_cost}}</td>
+						<td>{{mintotalcost.food_cost}}</td>
+					</tr>
+					<tr>
+						<td>Activities and entertainment</td>
+						<td>{{averagetotalcost.fun_cost}}</td>
+						<td>{{maxtotalcost.fun_cost}}</td>
+						<td>{{mintotalcost.fun_cost}}</td>
+					</tr>
+					<tr>
+						<td>Local transportation</td>
+						<td>{{averagetotalcost.travel_cost}}</td>
+						<td>{{maxtotalcost.travel_cost}}</td>
+						<td>{{mintotalcost.travel_cost}}</td>
+					</tr>
+					<tr>
+						<td>Visas</td>
+						<td>{{averagetotalcost.visa_cost}}</td>
+						<td>{{maxtotalcost.visa_cost}}</td>
+						<td>{{mintotalcost.visa_cost}}</td>
+					</tr>
+					<tr>
+						<td>Vaccines</td>
+						<td>{{averagetotalcost.vaccine_cost}}</td>
+						<td>{{maxtotalcost.vaccine_cost}}</td>
+						<td>{{mintotalcost.vaccine_cost}}</td>
+					</tr>
+					<tr>
+						<td>Other (Internet, etc.)</td>
+						<td>{{averagetotalcost.other_cost}}</td>
+						<td>{{maxtotalcost.other_cost}}</td>
+						<td>{{mintotalcost.other_cost}}</td>
+					</tr>
+					<tr>
+						<td>Sum</td>
+						<td>
+							<script>
+								var xtavgsum = sumFunction(xtavg1, xtavg2, xtavg3, xtavg4, xtavg5, xtavg6, xtavg7, xtavg8);
+								document.write(xtavgsum)
+							</script>
+						</td>
+						<td>
+							<script>
+								var xtmaxsum = sumFunction(xtmax1, xtmax2, xtmax3, xtmax4, xtmax5, xtmax6, xtmax7, xtmax8);
+								document.write(xtmaxsum)
+							</script>
+						</td>
+						<td>
+							<script>
+								var xtminsum = sumFunction(xtmin1, xtmin2, xtmin3, xtmin4, xtmin5, xtmin6, xtmin7, xtmin8);
+								document.write(xtminsum)
+							</script>
+						</td>
+					</tr>
+				</table>
+			</div>
+			<div class="col-6">
+				<canvas id="pieChartTotal" style="width: 50%; height: 50%"></canvas>
+			</div>
+		</div>
+		<script>
+			//Parameters of the pie chart
+			var config1 = {
+				type: 'pie',
+				data: {
+					labels: ['Flights','Accommodation', 'Food', 'Activities and entertainment', 'Local transportation', 'Visas', 'Vaccines', 'Other'],
+					datasets: [ { 
+						data: [xtavg1, xtavg2, xtavg3, xtavg4, xtavg5, xtavg6, xtavg7, xtavg8],
+						backgroundColor: ["#0074D9", "#FF4136", "#2ECC40", "#FF851B", "#7FDBFF", "#B10DC9", "#FFDC00", "#001f3f"]
+					}]
+				},
+				options: {
+					responsive: true,
+					title: {
+						text: "Average total cost",
+						display : true
+					}
+				}
+			};
+			window.addEventListener('load', function() {
+				var ctx1 = document.getElementById('pieChartTotal').getContext('2d'); 
+				window.totalPie = new Chart(ctx1, config1);
+			});
+		</script>
+		<script>
+			//Averege daily cost
+			var xdavg2 = 0;
+			var xdavg3 = 0;
+			var xdavg4 = 0;
+			var xdavg5 = 0;
+			var xdavg8 = 0;
+			try {
+				xdavg2 = getValue({{averagecosts.hotel_cost}});
+				xdavg3 = getValue({{averagecosts.food_cost}});
+				xdavg4 = getValue({{averagecosts.fun_cost}});
+				xdavg5 = getValue({{averagecosts.travel_cost}});
+				xdavg8 = getValue({{averagecosts.other_cost}});
+			} catch(err) { }
+			//Max daily cost
+			var xdmax2 = 0;
+			var xdmax3 = 0;
+			var xdmax4 = 0;
+			var xdmax5 = 0;
+			var xdmax8 = 0;
+			try {
+				xdmax2 = getValue({{maxcosts.hotel_cost}});
+				xdmax3 = getValue({{maxcosts.food_cost}});
+				xdmax4 = getValue({{maxcosts.fun_cost}});
+				xdmax5 = getValue({{maxcosts.travel_cost}});
+				xdmax8 = getValue({{maxcosts.other_cost}});
+			} catch(err) { }
+			//Min daily cost
+			var xdmin2 = 0;
+			var xdmin3 = 0;
+			var xdmin4 = 0;
+			var xdmin5 = 0;
+			var xdmin8 = 0;
+			try {
+				xdmin2 = getValue({{mincosts.hotel_cost}});
+				xdmin3 = getValue({{mincosts.food_cost}});
+				xdmin4 = getValue({{mincosts.fun_cost}});
+				xdmin5 = getValue({{mincosts.travel_cost}});
+				xdmin8 = getValue({{mincosts.other_cost}});
+			} catch(err) { }
+		</script>
+		<h1>Daily costs in destination: </h1>
+		<!--The estimated daily costs displayed in a table and on a pie chart-->
+		<div class="row">
+			<div class="col-6">
+				<table>
+					<tr>
+						<th>Travel expense</th>
+						<th>Average cost (USD)</th>
+						<th>Max cost (USD)</th>
+						<th>Min cost (USD)</th>
+					</tr>
+					<tr>
+						<td>Accommodation</td>
+						<td>{{averagecosts.hotel_cost}}</td>
+						<td>{{maxcosts.hotel_cost}}</td>
+						<td>{{mincosts.hotel_cost}}</td>
+					</tr>
+					<tr>
+						<td>Food</td>
+						<td>{{averagecosts.food_cost}}</td>
+						<td>{{maxcosts.food_cost}}</td>
+						<td>{{mincosts.food_cost}}</td>
+					</tr>
+					<tr>
+						<td>Activities and entertainment</td>
+						<td>{{averagecosts.fun_cost}}</td>
+						<td>{{maxcosts.fun_cost}}</td>
+						<td>{{mincosts.fun_cost}}</td>
+					</tr>
+					<tr>
+						<td>Local transportation</td>
+						<td>{{averagecosts.travel_cost}}</td>
+						<td>{{maxcosts.travel_cost}}</td>
+						<td>{{mincosts.travel_cost}}</td>
+					</tr>
+					<tr>
+						<td>Other (Internet, etc.)</td>
+						<td>{{averagecosts.other_cost}}</td>
+						<td>{{maxcosts.other_cost}}</td>
+						<td>{{mincosts.other_cost}}</td>
+					</tr>
+					<tr>
+						<td>Sum</td>
+						<td>
+							<script>
+								var xdavgsum = sumFunction(xdavg2, xdavg3, xdavg4, xdavg5, xdavg8);
+								document.write(xdavgsum)
+							</script>
+						</td>
+						<td>
+							<script>
+								var xdmaxsum = sumFunction(xdmax2, xdmax3, xdmax4, xdmax5, xdmax8);
+								document.write(xdmaxsum)
+							</script>
+						</td>
+						<td>
+							<script>
+								var xdminsum = sumFunction(xdmin2, xdmin3, xdmin4, xdmin5, xdmin8);
+								document.write(xdminsum)
+							</script>
+						</td>
+					</tr>
+				</table>
+			</div>
+			<div class="col-6">
+				<canvas id="pieChartDaily" style="width: 50%; height: 50%"></canvas>
+			</div>
+		</div>
+		<script>
+			//Parameters of the pie chart
+			var config2 = {
+				type: 'pie',
+				data: {
+					labels: ['Accommodation', 'Food', 'Activities and entertainment', 'Local transportation', 'Other'],
+					datasets: [ { 
+						data: [xdavg2, xdavg3, xdavg4, xdavg5, xdavg8],
+						backgroundColor: ["#0074D9", "#FF4136", "#2ECC40", "#FF851B", "#7FDBFF"]
+					}]
+				},
+				options: {
+					responsive: true,
+					title: {
+						text: "Average daily cost",
+						display : true
+					}
+				}
+			};
+			window.addEventListener('load', function() {
+				var ctx2 = document.getElementById('pieChartDaily').getContext('2d'); 
+				window.dailyPie = new Chart(ctx2, config2);
+			});
+		</script>
+	{% else %}
+		<h1>Searching parameters:</h1>
+		<p>Departure country: {{parameter.origin}}</p>
+		<p>Arrival country: {{parameter.destination}}</p>
+		<p>Number of days: {{parameter.number_of_days}}</p>
+		<p>Number of travellers: {{parameter.number_of_travellers}}</p>
+		<p>No available trips with these settings.</p>
+	{% endif%}
+</div>
+{% endblock %}

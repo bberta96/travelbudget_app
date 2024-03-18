@@ -1,0 +1,244 @@
+{% extends "trips/layout.html" %}
+
+{% if user.is_authenticated %}
+	{% block body %}
+	<div id="content" name="content" class="container">
+		<h1>Add new trip</h1>
+		<form method="POST" enctype="multipart/form-data">
+			{% csrf_token %}
+			<!--By filling out the form, users can provide information about their trips and contribute in the improvement of the travel cost estimation-->
+			<h2>Name of the trip</h2>
+			<div class="form-group col-4">
+				<label class="control-label" for="trip_name">Trip name: </label>
+				<input type="text" class="form-control" name="trip_name" required>
+			</div>
+			<h2>Flight</h2>
+			<!--List of the available countries-->
+			<div class="form-group row">
+				<div class="form-group col-4">	
+					<label class="control-label" for="origin">Departure country: </label>
+					<select name="origin" class="form-control" required>
+						{% for country_name in countries %}
+							<option>{{country_name.country}}</option>
+						{% endfor %}
+					</select>
+				</div>
+				<div class="form-group col-4">
+					<label class="control-label" for="destination">Arrival country: </label>
+					<select name="destination" class="form-control" required>
+						{% for country_name in countries %}
+							<option>{{country_name.country}}</option>
+						{% endfor %}
+					</select>
+				</div>
+			</div>
+			<h2>Lengths of the stay</h2>
+			<div class="form-group col-4">
+				<label class="control-label" for="number_of_days">Number of days: </label>
+				<input type="number" class="form-control" name="number_of_days" required>
+			</div>
+			<h2>Participants</h2>
+			<div class="form-group col-4">
+				<label class="control-label" for="number_of_travellers">Number of travellers: </label>
+				<input type="number" class="form-control" name="number_of_travellers" required>
+			</div>
+			<h2>Travel expenses</h2>
+			<!--Components of the travel cost-->
+			<div class="form-group row">
+				<div class="form-group col-4">	
+					<label class="control-label" for="flight_cost">Flights: </label>
+					<input type="number" class="form-control" name="flight_cost" required>
+				</div>
+				<div class="form-group col-4">		
+					<label class="control-label" for="hotel_cost">Accommodation: </label>
+					<input type="number" class="form-control" name="hotel_cost" required>
+				</div>
+				<div class="form-group col-4">	
+					<label class="control-label" for="food_cost">Food: </label>
+					<input type="number" class="form-control" name="food_cost" required>
+				</div>
+			</div>
+			<div class="form-group row">
+				<div class="form-group col-4">	
+					<label class="control-label" for="fun_cost">Activities and entertainment: </label>
+					<input type="number" class="form-control" name="fun_cost" required>
+				</div>
+				<div class="form-group col-4">	
+					<label class="control-label" for="travel_cost">Local transportation: </label>
+					<input type="number" class="form-control" name="travel_cost" required>
+				</div>
+				<div class="form-group col-4">	
+					<label class="control-label" for="visa_cost">Visas: </label>
+					<input type="number" class="form-control" name="visa_cost" required>
+				</div>
+			</div>
+			<div class="form-group row">
+				<div class="form-group col-4">
+					<label class="control-label" for="vaccine_cost">Vaccines: </label>
+					<input type="number" class="form-control" name="vaccine_cost" required>
+				</div>
+				<div class="form-group col-4">	
+					<label class="control-label" for="other_cost">Other (Internet, etc.): </label>
+					<input type="number" class="form-control" name="other_cost" required>
+				</div>
+			</div>
+			<br>
+			<div class="form-group col-2 offset-5">
+				<input type="submit" class="form-control" value="Submit">
+			</div>
+			{% if messages %}
+			<ul class="messages">
+				{% for message in messages %}
+					{% if message.tags %}  <script>alert("{{ message }}")</script> {% endif %}
+				{% endfor %}
+			</ul>
+			{% endif %}
+		</form>
+		<h1>My trips</h1>
+		{% for trip in newtrip %}
+			<!--The deatils and travel costs of the user's previous trips displayed in table as well as in pie chart-->
+			<h2>{{trip.trip_name}}</h2>
+			<p>The departure country was {{trip.flight_id.origin.country}} and the arrival country was {{trip.flight_id.destination.country}}.</p>
+			<p>The lengths of the trip was {{trip.number_of_days}} days and the number of participants was {{trip.number_of_travellers}} people.</p>
+			<p>The total cost of the trip:</p>
+			<!--The trips's cost components for one person for one night are stored in the database -->
+			<!--In order to get the total cost of the trip the airfare have to be multiplied with the number of travellers and the living costs have to be multiplied with the number of travellers and the lenght of the stay-->
+			<script>
+				var travellers = getValue({{trip.number_of_travellers}});
+				var days = getValue({{trip.number_of_days}});
+			</script>
+			<div class="row">
+				<div class="col-6">
+					<table>
+						<tr>
+							<th>Travel expense</th>
+							<th>Cost (USD)</th>
+						</tr>
+						<tr>
+							<td>Flights</td>
+							<td>
+								<script>
+									var x_flight = getValue({{trip.cost_id.flight_cost}});
+									var x1 = x_flight * travellers;
+									document.write(x1)
+								</script>
+							</td>
+						</tr>
+						<tr>
+							<td>Accommodation</td>
+							<td>
+								<script>
+									var x_hotel = getValue({{trip.cost_id.hotel_cost}});
+									var x2 = x_hotel * travellers * days;
+									document.write(x2)
+								</script>
+							</td>
+						</tr>
+						<tr>
+							<td>Food</td>
+							<td>
+								<script>
+									var x_food = getValue({{trip.cost_id.food_cost}});
+									var x3 = x_food * travellers * days;
+									document.write(x3)
+								</script>
+							</td>
+						</tr>
+						<tr>
+							<td>Activities and entertainment</td>
+							<td>
+								<script>
+									var x_fun = getValue({{trip.cost_id.fun_cost}});
+									var x4 = x_fun * travellers * days;
+									document.write(x4)
+								</script>
+							</td>
+						</tr>
+						<tr>
+							<td>Local transportation</td>
+							<td>
+								<script>
+									var x_travel = getValue({{trip.cost_id.travel_cost}});
+									var x5 = x_travel * travellers * days;
+									document.write(x5)
+								</script>
+							</td>
+						</tr>
+						<tr>
+							<td>Visas</td>
+							<td>
+								<script>
+									var x_visa = getValue({{trip.cost_id.visa_cost}});
+									var x6 = x_visa * travellers;
+									document.write(x6)
+								</script>
+							</td>
+						</tr>
+						<tr>
+							<td>Vaccines</td>
+							<td>
+								<script>
+									var x_vaccine = getValue({{trip.cost_id.vaccine_cost}});
+									var x7 = x_vaccine * travellers;
+									document.write(x7)
+								</script>
+							</td>
+						</tr>
+						<tr>
+							<td>Other (Internet, etc.)</td>
+							<td>
+								<script>
+									var x_other = getValue({{trip.cost_id.other_cost}});
+									var x8 = x_other * travellers * days;
+									document.write(x8)
+								</script>
+							</td>
+						</tr>
+						<tr>
+							<td>Sum</td>
+							<td>
+								<script>
+									var x9 = sumFunction(x1,x2,x3,x4,x5,x6,x7,x8);
+									document.write(x9)
+								</script>
+							</td>
+						</tr>
+					</table>
+				</div>
+				<div class="col-6">
+					<canvas id="pieChart{{ trip.pk }}" style="width: 50%; height: 50%"></canvas>
+				</div>
+			</div>
+			<br>
+			<script>
+				//Defining the parameters of the pie chart
+				var config{{ trip.pk }} = {
+					type: 'pie',
+					data: {
+						labels: ['Flights','Accommodation', 'Food', 'Activities and entertainment', 'Local transportation', 'Visas', 'Vaccines', 'Other'],
+						datasets: [ { 
+							data: [x1, x2, x3, x4, x5, x6, x7, x8],
+							backgroundColor: ["#0074D9", "#FF4136", "#2ECC40", "#FF851B", "#7FDBFF", "#B10DC9", "#FFDC00", "#001f3f"]
+						}]
+					},
+					options: {
+						responsive: true,
+						title: {
+							display : true
+						}
+					}
+				};
+				window.addEventListener('load', function() {
+					var ctx = document.getElementById('pieChart{{ trip.pk }}').getContext('2d');  
+					window.pieChart = new Chart(ctx, config{{ trip.pk }});
+				});
+			</script>
+		{% empty %}
+			<p>No trips added yet.</p>
+		{% endfor %}
+	</div>
+	{% endblock %}
+{% else %}
+	<p>You have to log in to access the content!</p>
+{% endif %}
+	
